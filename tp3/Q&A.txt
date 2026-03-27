@@ -1,2 +1,0 @@
-Q2 ==> Pourquoi le useAuth() lance une erreur si le context est null ? Quel bug ça prévient ?
-cela signifie que le composant qui appelle useAuth() n'est pas enveloppé par le AuthProvider
