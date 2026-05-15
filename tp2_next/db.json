@@ -1,0 +1,19 @@
+{
+  "projects": [
+    {
+      "id": "1",
+      "name": "TaskFlow Mobile",
+      "color": "#FF6B6B"
+    },
+    {
+      "id": "2",
+      "name": "TaskFlow Backend",
+      "color": "#4ECDC4"
+    },
+    {
+      "id": "3",
+      "name": "Dashboard Redesign",
+      "color": "#FFE66D"
+    }
+  ]
+}
