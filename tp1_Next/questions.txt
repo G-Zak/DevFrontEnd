@@ -1,0 +1,67 @@
+Q1 - Comparaison de structure
+En React avec Vite, le routing est surtout géré dans le code : `main.tsx`, `App.tsx`, `react-router-dom`, et une structure souvent centrée sur `src/`, `components/` et `features/`.
+En Next.js, le routing est basé sur les dossiers dans `app/` : `app/page.tsx` pour `/`, `app/login/page.tsx` pour `/login`, `app/dashboard/page.tsx` pour `/dashboard`, et `app/projects/[id]/page.tsx` pour une route dynamique.
+Autre différence importante : Next.js sépare naturellement `layout.tsx`, `page.tsx` et les composants Server/Client, alors qu’en React SPA on construit tout dans l’arbre du routeur.
+
+Q2 - Route /login
+Pour la route `/login`, j’ai créé un seul fichier dédié : `app/login/page.tsx`.
+En React Router, il faut au minimum le composant de page, l’import dans `App.tsx` et la déclaration de la route. Next.js évite cette configuration manuelle.
+
+Q3 - Récupération de l’id
+En Next.js, l’id est récupéré via la prop `params` du composant de page, fournie par Next.js côté serveur.
+En React Router, `useParams()` lit l’id depuis le contexte du routeur côté client.
+La différence fondamentale, c’est que Next.js passe le paramètre directement à la page, alors qu’en React on le lit avec un hook dans l’application client.
+
+Q4 - Route dynamique avec fetch
+La page dynamique `app/projects/[id]/page.tsx` récupère l’id, fait un `fetch` vers `http://localhost:4000/projects/${id}`, puis affiche le projet correspondant.
+Si le projet n’existe pas, on peut afficher un message du type `Projet non trouvé`.
+
+Q5 - Chargement des projets
+En React SPA, il fallait beaucoup plus de logique : `useState`, `useEffect`, `fetch`, gestion du loading, puis `setProjects`.
+Ici, il reste seulement la logique asynchrone principale dans le composant serveur : `await fetch(...)` puis `await res.json()`.
+Donc on passe d’un composant client plus verbeux à une fonction serveur beaucoup plus simple.
+
+Q6 - Network dans le navigateur
+Non, on ne voit pas la requête `GET /projects` dans le navigateur.
+La requête est exécutée par le serveur Next.js, pas par le client. Le navigateur reçoit directement du HTML déjà rempli.
+
+Q7 - Pourquoi `use client` pour Login
+Il faut `use client` sur la page Login parce qu’elle utilise `useState`, des événements `onChange` et `onSubmit`, ainsi que `useRouter`.
+Le Dashboard, lui, reste un Server Component car il affiche simplement des données sans interaction client obligatoire.
+
+Q8 - Équivalent de `useNavigate()`
+En Next.js, l’équivalent est `useRouter()` depuis `next/navigation`.
+On utilise ensuite `router.push('/dashboard')` ou `router.replace(...)`.
+
+Q9 - View Source sur React SPA
+Dans une SPA React, le code source HTML contient surtout un conteneur vide comme `<div id="root"></div>` et des scripts JavaScript.
+Les noms des projets n’y sont pas visibles au départ, car le contenu est injecté après chargement côté client.
+
+Q10 - View Source sur Next.js
+Dans Next.js, le HTML source contient déjà le contenu rendu par le serveur, y compris les projets du Dashboard.
+Oui, les noms des projets sont présents dans le HTML initial.
+
+Q11 - Header persistant avec React Router
+Avec React Router, on obtenait le même comportement en plaçant le Header dans un composant de layout commun, affiché autour des routes, souvent avec un `Outlet`.
+Le principe était de rendre le layout une seule fois au-dessus des pages.
+
+Q12 - Layout spécifique au Dashboard
+Il faut créer un fichier `app/dashboard/layout.tsx`.
+Ce layout ne s’appliquera qu’aux pages situées sous `/dashboard`.
+
+Q13 - Server Component et `onClick`
+Non, un Server Component ne peut pas gérer `onClick`.
+Les événements React et l’interactivité navigateur nécessitent un Client Component.
+
+Q14 - Bouton "+ Nouveau projet"
+Non, il ne faut pas transformer toute la page en Client Component.
+On peut garder le Dashboard en Server Component et isoler seulement le bouton ou le petit bloc interactif dans un composant client séparé.
+
+Q15 - Avantage sécurité du fetch serveur
+Le navigateur ne voit jamais l’URL interne `:4000`, donc on masque l’architecture backend au client.
+Cela réduit la surface d’attaque, évite d’exposer directement le service JSON et permet de centraliser les accès côté serveur.
+
+Bonus - Gestion d’erreur pour un projet absent
+Si `res.ok` vaut `false`, on affiche un message comme `Projet non trouvé`.
+Cela remplace la combinaison `useState` + `useEffect` + `loading` + `error` qu’on utilisait souvent en React SPA.
+

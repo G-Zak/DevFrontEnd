@@ -1,0 +1,58 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "admin@taskflow.com",
+      "password": "admin123",
+      "name": "Admin"
+    },
+    {
+      "id": "2",
+      "email": "ali@taskflow.com",
+      "password": "ali123",
+      "name": "Ali"
+    },
+    {
+      "id": "3",
+      "email": "sara@taskflow.com",
+      "password": "sara123",
+      "name": "Sara"
+    }
+  ],
+  "projects": [
+    {
+      "id": "3860",
+      "name": "react",
+      "color": "#2eda0b"
+    },
+    {
+      "id": "73e3",
+      "name": "jee",
+      "color": "#3498db"
+    }
+  ],
+  "columns": [
+    {
+      "id": "todo",
+      "title": "A faire",
+      "tasks": [
+        "Creer la page de profil",
+        "Ajouter validation formulaire"
+      ]
+    },
+    {
+      "id": "in-progress",
+      "title": "En cours",
+      "tasks": [
+        "Refonte sidebar responsive"
+      ]
+    },
+    {
+      "id": "done",
+      "title": "Termine",
+      "tasks": [
+        "Authentification login"
+      ]
+    }
+  ]
+}
