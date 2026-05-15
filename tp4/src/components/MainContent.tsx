@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import styles from './MainContent.module.css';
 
 export interface Column {
@@ -9,10 +8,28 @@ export interface Column {
 
 interface MainContentProps {
   columns: Column[];
+  error?: string | null;
 }
 
-function MainContent({ columns }: MainContentProps) {
-  console.log('MainContent re-render');
+export default function MainContent({ columns, error }: MainContentProps) {
+  if (error) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.emptyState}>{error}</div>
+      </main>
+    );
+  }
+
+  if (columns.length === 0) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.emptyState}>
+          Aucune colonne trouvee. Ajoutez des colonnes dans db.json pour afficher le Kanban.
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className={styles.main}>
       <div className={styles.board}>
@@ -32,5 +49,3 @@ function MainContent({ columns }: MainContentProps) {
     </main>
   );
 }
-
-export default memo(MainContent);

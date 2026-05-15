@@ -1,31 +1,35 @@
 import { useState } from 'react';
-import { useAuth } from './AuthContext';
 import styles from './Login.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginStart, loginSuccess, loginFailure } from './authSlice';
+import type { RootState, AppDispatch } from '../../store';
 
 export default function Login() {
-  const { state, dispatch } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error } = useSelector((s: RootState) => s.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    dispatch({ type: 'LOGIN_START' });
+    dispatch(loginStart());
 
     try {
       const res = await fetch(`http://localhost:4000/users?email=${email}`);
       const users = await res.json();
 
       if (users.length === 0 || users[0].password !== password) {
-        dispatch({ type: 'LOGIN_FAILURE', payload: 'Email ou mot de passe incorrect' });
+        dispatch(loginFailure('Email ou mot de passe incorrect'));
         return;
       }
 
-      // Exclude password from the user object we save to state
       const { password: _, ...user } = users[0];
-      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+      const fakeToken = btoa(JSON.stringify({ userId: user.id, email: user.email, role: 'admin', exp: Date.now() + 3600000 }));
+
+      dispatch(loginSuccess({ user, token: fakeToken }));
 
     } catch {
-      dispatch({ type: 'LOGIN_FAILURE', payload: 'Erreur de connexion au serveur' });
+      dispatch(loginFailure('Erreur de connexion au serveur'));
     }
   }
 
@@ -35,7 +39,7 @@ export default function Login() {
         <h1 className={styles.title}>TaskFlow</h1>
         <p className={styles.subtitle}>Connectez-vous pour continuer</p>
         
-        {state.error && <div className={styles.error}>{state.error}</div>}
+        {error && <div className={styles.error}>{error}</div>}
         
         <input
           type="email"
@@ -56,9 +60,9 @@ export default function Login() {
         <button
           type="submit"
           className={styles.button}
-          disabled={state.loading}
+          disabled={loading}
         >
-          {state.loading ? 'Connexion...' : 'Se connecter'}
+          {loading ? 'Connexion...' : 'Se connecter'}
         </button>
       </form>
     </div>

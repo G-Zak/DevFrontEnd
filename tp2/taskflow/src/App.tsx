@@ -1,48 +1,33 @@
 // src/App.tsx
-import { useState, useEffect } from 'react';
-import { useAuth } from './features/auth/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from './store';
 import Login from './features/auth/Login';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
+import useProjects from './hooks/useProjects';
+import { logout } from './features/auth/authSlice';
 
 interface Project { id: string; name: string; color: string; }
 interface Column { id: string; title: string; tasks: string[]; }
 
 export default function App() {
-  const { state: authState } = useAuth();
+  const user = useSelector((s: RootState) => s.auth.user);
 
-  if (!authState.user) {
-    return <Login />;
-  }
+  if (!user) return <Login />;
 
   return <Dashboard />;
 }
 
 function Dashboard() {
-  const { state: authState, dispatch } = useAuth();
+  const user = useSelector((s: RootState) => s.auth.user);
+  const dispatch = useDispatch<AppDispatch>();
+  const { projects, columns, loading, error, addProject, renameProject, deleteProject } = useProjects();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [columns, setColumns] = useState<Column[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [p, co] = await Promise.all([
-          fetch('http://localhost:4000/projects'),
-          fetch('http://localhost:4000/columns')
-        ]);
-        setProjects(await p.json());
-        setColumns(await co.json());
-      } catch (e) { 
-        console.error(e); 
-      } finally { 
-        setLoading(false); 
-      }
-    }
-    fetchData();
-  }, []);
+  const handleToggle = useCallback(() => setSidebarOpen(p => !p), []);
+  const handleLogout = useCallback(() => dispatch(logout()), [dispatch]);
 
   if (loading) return <div style={{ padding: '2rem' }}>Chargement...</div>;
 
@@ -50,12 +35,12 @@ function Dashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Header
         title="TaskFlow"
-        onMenuClicek={() => setSidebarOpen(p => !p)}
-        userName={authState.user?.name}
-        onLogout={() => dispatch({ type: 'LOGOUT' })}
+        onMenuClick={handleToggle}
+        userName={user?.name}
+        onLogout={handleLogout}
       />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar projects={projects} isOpen={sidebarOpen} />
+        <Sidebar projects={projects} isOpen={sidebarOpen} onRename={renameProject} />
         <MainContent columns={columns} />
       </div>
     </div>

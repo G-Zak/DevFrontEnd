@@ -1,0 +1,35 @@
+.header {
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 16px;
+	background: #1b8c3e;
+	color: #fff;
+}
+
+.left {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.menuBtn {
+	border: none;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+	font-size: 18px;
+	line-height: 1;
+}
+
+.logo {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.right { display: flex; align-items: center; gap: 1rem; }
+.userName { font-size: 0.9rem; opacity: 0.9; }
+.logoutBtn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; }
+.logoutBtn:hover { background: rgba(255,255,255,0.25); }
