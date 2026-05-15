@@ -1,9 +1,18 @@
-import { useState, useEffect } from 'react';
-import api from '../api/axios';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
+import api from '../api/axios';
 
-interface Project { id: string; name: string; color: string }
-interface Column { id: string; title: string; tasks: string[] }
+export interface Project {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface Column {
+  id: string;
+  title: string;
+  tasks: string[];
+}
 
 export default function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -18,47 +27,81 @@ export default function useProjects() {
           api.get('/projects'),
           api.get('/columns'),
         ]);
+
         setProjects(projRes.data);
         setColumns(colRes.data);
-      } catch (e) {
+      } catch {
         setError('Erreur chargement');
       } finally {
         setLoading(false);
       }
     }
+
     fetchData();
   }, []);
 
-  async function addProject(name: string, color: string) {
+  const addProject = useCallback(async (name: string, color: string) => {
     setError(null);
+
     try {
       const { data } = await api.post('/projects', { name, color });
-      setProjects(prev => [...prev, data]);
+      setProjects((prev) => [...prev, data]);
     } catch (err) {
-      if (axios.isAxiosError(err)) setError(`Erreur: ${err.response?.status}`);
+      if (axios.isAxiosError(err)) {
+        setError(`Erreur: ${err.response?.status ?? 'inconnue'}`);
+      } else {
+        setError('Erreur ajout projet');
+      }
     }
-  }
+  }, []);
 
-  async function renameProject(project: Project) {
+  const renameProject = useCallback(async (project: Project) => {
     const newName = prompt('Nouveau nom :', project.name);
-    if (!newName || newName === project.name) return;
-    try {
-      const { data } = await api.put(`/projects/${project.id}`, { ...project, name: newName });
-      setProjects(prev => prev.map(p => p.id === data.id ? data : p));
-    } catch (err) {
-      if (axios.isAxiosError(err)) setError(`Erreur: ${err.response?.status}`);
-    }
-  }
 
-  async function deleteProject(id: string) {
-    if (!confirm('Êtes-vous sûr ?')) return;
+    if (!newName || newName === project.name) {
+      return;
+    }
+
+    try {
+      const { data } = await api.put(`/projects/${project.id}`, {
+        ...project,
+        name: newName,
+      });
+
+      setProjects((prev) => prev.map((item) => (item.id === data.id ? data : item)));
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(`Erreur: ${err.response?.status ?? 'inconnue'}`);
+      } else {
+        setError('Erreur renommage projet');
+      }
+    }
+  }, []);
+
+  const deleteProject = useCallback(async (id: string) => {
+    if (!confirm('Êtes-vous sûr ?')) {
+      return;
+    }
+
     try {
       await api.delete(`/projects/${id}`);
-      setProjects(prev => prev.filter(p => p.id !== id));
+      setProjects((prev) => prev.filter((project) => project.id !== id));
     } catch (err) {
-      if (axios.isAxiosError(err)) setError(`Erreur: ${err.response?.status}`);
+      if (axios.isAxiosError(err)) {
+        setError(`Erreur: ${err.response?.status ?? 'inconnue'}`);
+      } else {
+        setError('Erreur suppression projet');
+      }
     }
-  }
+  }, []);
 
-  return { projects, columns, loading, error, addProject, renameProject, deleteProject };
+  return {
+    projects,
+    columns,
+    loading,
+    error,
+    addProject,
+    renameProject,
+    deleteProject,
+  };
 }

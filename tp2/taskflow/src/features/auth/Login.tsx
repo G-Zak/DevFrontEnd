@@ -1,22 +1,24 @@
-import { useState } from 'react';
-import styles from './Login.module.css';
+import { useState, type FormEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginStart, loginSuccess, loginFailure } from './authSlice';
-import type { RootState, AppDispatch } from '../../store';
+import { loginFailure, loginStart, loginSuccess } from './authSlice';
+import type { AppDispatch, RootState } from '../../store';
+import api from '../../api/axios';
+import styles from './Login.module.css';
 
 export default function Login() {
   const dispatch = useDispatch<AppDispatch>();
-  const { loading, error } = useSelector((s: RootState) => s.auth);
+  const { loading, error } = useSelector((state: RootState) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     dispatch(loginStart());
 
     try {
-      const res = await fetch(`http://localhost:4000/users?email=${email}`);
-      const users = await res.json();
+      const { data: users } = await api.get('/users', {
+        params: { email },
+      });
 
       if (users.length === 0 || users[0].password !== password) {
         dispatch(loginFailure('Email ou mot de passe incorrect'));
@@ -24,7 +26,14 @@ export default function Login() {
       }
 
       const { password: _, ...user } = users[0];
-      const fakeToken = btoa(JSON.stringify({ userId: user.id, email: user.email, role: 'admin', exp: Date.now() + 3600000 }));
+      const fakeToken = btoa(
+        JSON.stringify({
+          userId: user.id,
+          email: user.email,
+          role: 'admin',
+          exp: Date.now() + 3600000,
+        })
+      );
 
       dispatch(loginSuccess({ user, token: fakeToken }));
 

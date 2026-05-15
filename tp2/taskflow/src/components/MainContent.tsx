@@ -1,11 +1,6 @@
 import { memo } from 'react';
 import styles from './MainContent.module.css';
-
-export interface Column {
-  id: string;
-  title: string;
-  tasks: string[];
-}
+import type { Column } from '../hooks/useProjects';
 
 interface MainContentProps {
   columns: Column[];
@@ -13,6 +8,7 @@ interface MainContentProps {
 
 function MainContent({ columns }: MainContentProps) {
   console.log('MainContent re-render');
+
   return (
     <main className={styles.main}>
       <div className={styles.board}>
