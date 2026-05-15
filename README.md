@@ -1,52 +1,83 @@
-Q1 : Pourquoi <Navigate /> (composant) et pas navigate() (hook) ici ?
-=>Ce code s'exécute pendant la phase de rendu de React, navigate() est fait pour être appelé en dehors du rendu par exemple un handler ou un useEffect.
+Q1 : Pourquoi utiliser le composant <Navigate /> plutôt que la fonction `navigate()` ici ?
 
+Réponse
+Le code s'exécute pendant la phase de rendu de React. La fonction `navigate()` doit être appelée en dehors du rendu (par exemple depuis un gestionnaire d'événements ou un `useEffect`). Utiliser `<Navigate />` est approprié quand on veut déclencher une redirection directement pendant le rendu.
 
-Q2 : Quelle différence entre navigate(from) et navigate(from, { replace: true }) ?
-=>La différence principale réside dans la façon dont le routeur gère l'historique du navigateur ce qui impacte le comportement du bouton Retour
+Q2 : Quelle est la différence entre `navigate(from)` et `navigate(from, { replace: true })` ?
 
-Q3 : Après un POST, pourquoi fait-on setProjects(prev => [...prev, data]) plutôt qu’un
-re-fetch GET ?
-=>Cela permet d'afficher le nouveau projet instantanément pour l'utilisateur tout en évitant une requête réseau complète qui surchargerait inutilement le serveur.
+Réponse
+La différence porte sur l'historique du navigateur : `navigate(from)` ajoute une nouvelle entrée dans l'historique, tandis que `navigate(from, { replace: true })` remplace l'entrée courante. Le comportement du bouton « Retour » en dépend.
 
-Q5 : Quelle différence entre <Link> et <NavLink> ? Pourquoi NavLink ici ?
-=> <NavLink> possède une propriété isActive permettant d'appliquer un style CSS conditionnel quand l'URL correspond au lien, contrairement à <Link>. On l'utilise ici pour mettre en évidence le projet actuellement sélectionné dans la barre latérale.
+Q3 : Après un POST, pourquoi utilise-t-on `setProjects(prev => [...prev, data])` plutôt qu'un re-fetch (GET) ?
 
-Q6 : Ce composant sert pour le POST ET le PUT. Qu'est-ce qui change entre les deux usages ?
-=> Ce qui change, ce sont les props passées par le composant parent : pour un POST, les champs sont initialisés vides et la soumission crée un élément ; pour un PUT, les champs sont pré-remplis avec les données existantes et la soumission les met à jour.
+Réponse
+On met à jour la liste localement pour afficher immédiatement le nouveau projet à l'utilisateur et éviter une requête réseau complète et coûteuse.
 
-Q7 : Arrêtez json-server et tentez un POST. Le message s'affiche ?
-=> Oui, le message s'affiche. Sans le serveur, la requête échoue (Network Error) et Axios lève immédiatement une exception qui est capturée par le bloc catch pour mettre à jour l'état d'erreur et l'afficher dans l'interface.
+Q4 : Quelle différence entre `<Link>` et `<NavLink>` ? Pourquoi choisir `NavLink` ici ?
 
-Q8 : Avec fetch, un 404 ne lance PAS d'erreur. Avec Axios, que se passe-t-il ?
-=> Contrairement à fetch, Axios lance automatiquement une exception pour tous les statuts HTTP d'erreur (4xx et 5xx), ce qui vous fait entrer directement dans le bloc catch.
+Réponse
+`<NavLink>` expose une information d'état (par exemple `isActive`) qui permet d'appliquer un style conditionnel quand l'URL correspond au lien. On l'utilise pour mettre en évidence l'élément actif dans la barre latérale.
+
+Q5 : Ce composant sert pour le POST et pour le PUT. Qu'est-ce qui change entre les deux usages ?
+
+Réponse
+Les props. Pour un POST, les champs sont initialisés vides et la soumission crée un nouvel élément. Pour un PUT, les champs sont pré-remplis avec les données existantes et la soumission met à jour cet élément.
+
+Q6 : Que se passe-t-il si `json-server` est arrêté et qu'on tente un POST ? Le message s'affiche-t-il ?
+
+Réponse
+Oui : la requête échoue (Network Error), Axios lance une exception qui est capturée dans le bloc `catch`. L'état d'erreur est alors mis à jour pour informer l'utilisateur.
+
+Q7 : Avec `fetch`, un 404 ne lance pas d'erreur. Avec Axios, que se passe-t-il ?
+
+Réponse
+Axios considère les réponses HTTP 4xx/5xx comme des échecs et lance une exception, ce qui permet d'entrer directement dans le bloc `catch` pour gérer l'erreur.
 
 ---
-**Séance 5 - Réponses du TP**
 
-Q1 : Le script s’exécute-t-il ? Pourquoi ? Que fait React avec les strings dans le JSX ?
-=> Non, le script ne s'exécute pas. React échappe automatiquement les strings dans le JSX pour prévenir les attaques XSS. Le HTML est affiché comme du texte brut et n'est pas interprété.
+**Séance 5 — Réponses du TP**
 
-Q2 : Que se passe-t-il cette fois ? Supprimez ce code immédiatement après le test.
-=> Le script s'exécute et une popup d'alerte apparaît (si le code malveillant l'inclut). Utiliser `dangerouslySetInnerHTML` désactive la protection de React et interprète le HTML, ce qui expose à des failles XSS.
+Q1 : Le script s'exécute-t-il lorsqu'on injecte du HTML dans le JSX ? Que fait React avec les chaînes de caractères dans le JSX ?
 
-Q3 : Ouvrez Network (F12). Faites un GET /projects. Voyez-vous le header Authorization: Bearer ... ?
-=> Oui, grâce à l'intercepteur Axios qu'on a configuré, l'en-tête "Authorization: Bearer <token>" est automatiquement injecté dans toutes les requêtes sortantes.
+Réponse
+Par défaut, non. React échappe automatiquement les chaînes de caractères dans le JSX pour prévenir les attaques XSS : le HTML est affiché comme texte et n'est pas interprété.
 
-Q4 : Pourquoi stocker le token en mémoire (state React) et PAS dans localStorage ?
-=> Le `localStorage` est accessible par n'importe quel script JavaScript de la page, ce qui est dangereux en cas de faille XSS. Le state de React est isolé en mémoire dans l'application, limitant ce risque.
+Q2 : Que se passe-t-il si on force l'injection (par exemple avec `dangerouslySetInnerHTML`) ?
 
-Q5 : Comparez authSlice.ts avec votre ancien authReducer.ts. Qu’est-ce qui a changé ?
-=> Avec Redux Toolkit (`authSlice.ts`), la librairie utilise Immer en coulisse. Cela permet d'écrire du code de manière mutable (`state.loading = true`) alors que l'état reste immuable. De plus, il n'y a plus besoin d'écrire de `switch/case` ni de définir manuellement les types d'actions.
+Réponse
+Le navigateur peut exécuter le script inclus et déclencher une alerte ou d'autres effets malveillants. `dangerouslySetInnerHTML` désactive la protection automatique de React et expose l'application aux failles XSS : ne pas laisser ce code en production.
 
-Q6 : Combien de composants se re-rendent quand on toggle la sidebar ? Lesquels ne DEVRAIENT PAS ?
-=> Sans optimisation, plusieurs composants se re-rendent inutilement, notamment `MainContent` qui n'a pourtant rien à voir avec l'état de la Sidebar.
+Q3 : En ouvrant l'onglet Network et en faisant un GET `/projects`, voit-on le header `Authorization: Bearer ...` ?
 
-Q7 : Pourquoi MainContent ne se re-rend plus ? Que compare React.memo ?
-=> Il ne se re-rend plus car `React.memo` fait une comparaison superficielle (shallow compare) des props. Puisque la référence du tableau `columns` n'a pas changé, React ignore ce rendu.
+Réponse
+Oui. L'intercepteur Axios configuré ajoute automatiquement l'en-tête `Authorization: Bearer <token>` aux requêtes sortantes.
 
-Q8 : Quelle différence entre useMemo et useCallback ? Quand utiliser chacun ?
-=> `useMemo` mémorise le résultat d'un calcul coûteux et s'utilise pour retourner une valeur. `useCallback` mémorise la référence d'une fonction pour éviter qu'elle ne soit recréée à chaque rendu. On utilise `useCallback` quand on passe une fonction en prop à un composant enfant (optimisé avec React.memo) pour éviter de casser sa mémoïsation.
+Q4 : Pourquoi stocker le token en mémoire (state React) plutôt que dans `localStorage` ?
 
-Q10 : Pour chaque action, notez : quels composants se re-rendent ? Combien de temps prend le render ? Y a-t-il des re-renders inutiles après vos optimisations React.memo ?
-=> Grâce à `React.memo` et `useCallback`, lors du toggle de la sidebar, seul le `Dashboard` et la `Sidebar` se re-rendent. `MainContent` est préservé, ce qui élimine les re-renders inutiles et réduit le temps de traitement vu dans le Profiler.
+Réponse
+`localStorage` est accessible par n'importe quel script JavaScript de la page, ce qui augmente le risque en cas de XSS. Le state React reste en mémoire et limite l'exposition du token.
+
+Q5 : Qu'apporte `authSlice.ts` par rapport à l'ancien `authReducer.ts` ?
+
+Réponse
+Avec Redux Toolkit, `authSlice.ts` s'appuie sur Immer : on peut écrire du code « mutable » tout en conservant l'immuabilité de l'état. Cela évite d'écrire des `switch/case` et simplifie la définition des actions.
+
+Q6 : Combien de composants se re-rendent quand on bascule la sidebar ? Lesquels ne devraient pas ?
+
+Réponse
+Sans optimisation, des composants non liés (par exemple `MainContent`) peuvent se re-render inutilement. L'objectif est de limiter ces re-renders aux composants réellement concernés.
+
+Q7 : Pourquoi `MainContent` ne se re-rend plus après optimisation ? Que compare `React.memo` ?
+
+Réponse
+`React.memo` effectue une comparaison superficielle (shallow compare) des props. Si la référence d'une prop (par exemple un tableau) n'a pas changé, le composant est préservé et le rendu est ignoré.
+
+Q8 : Quelle est la différence entre `useMemo` et `useCallback` et quand les utiliser ?
+
+Réponse
+`useMemo` mémorise le résultat d'un calcul coûteux et retourne une valeur, `useCallback` mémorise la référence d'une fonction pour éviter sa recréation. Utilisez `useCallback` quand vous passez une fonction à un enfant optimisé avec `React.memo`.
+
+Q9 : Pour chaque action, notez quels composants se re-rendent, combien de temps prend le render, et s'il reste des re-renders inutiles après optimisation.
+
+Réponse
+Après optimisation (avec `React.memo` et `useCallback`), lors du toggle de la sidebar, seuls `Dashboard` et `Sidebar` se re-rendent. `MainContent` est préservé, ce qui réduit le temps de rendu observé dans le Profiler.
